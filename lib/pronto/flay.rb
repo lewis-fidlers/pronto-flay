@@ -4,8 +4,13 @@ require 'flay'
 module Pronto
   class Flay < Runner
     def run
-      files = ruby_patches.map(&:new_file_full_path)
-      files = ::Flay.filter_files(files)
+      args = ruby_patches.map(&:new_file_full_path)
+
+      extensions = ["rb"] + ::Flay.load_plugins
+      glob = "**/*.{#{extensions.join ','}}"
+
+      expander = PathExpander.new args, glob
+      files = expander.filter_files expander.process, ::Flay::DEFAULT_IGNORE
 
       if files.any?
         flay.process(*files)
